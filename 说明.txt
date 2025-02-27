@@ -1,0 +1,5 @@
+启动后端：终端命令 uvicorn app:app --reload
+· 前一个app 是的 FastAPI 应用所在的 Python 文件名（不带 .py 后缀）。
+· app 是 FastAPI 实例的名称。
+· --reload 是为了开启自动重新加载，方便调试时看到即时的代码变更。
+启动前端：终端命令 npm start
