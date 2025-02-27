@@ -7,6 +7,13 @@
 # BlueJ files
 *.ctxt
 
+#Temp Files
+stl_files/
+uploaded_files/
+
+__pycache__
+.idea
+
 # Mobile Tools for Java (J2ME)
 .mtj.tmp/
 
