@@ -22,7 +22,7 @@ print(sys.path)
 from cadlib.visualize import vec2CADsolid
 from cadlib.extrude import CADSequence
 from single_encode_decode import *
-from config.ConfigAE import *
+from config.configAE import *
 from trainer.trainerAE import *
 
 app = FastAPI()
