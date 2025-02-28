@@ -26,6 +26,7 @@ from config.configAE import *
 from trainer.trainerAE import *
 
 app = FastAPI()
+fetchIP = "http://116.172.93.35:8000"
 
 # 配置 CORS
 origins = [
@@ -116,7 +117,7 @@ async def export_stl(
         stl_file_path = process_h5_file(src, deflection)
         if stl_file_path:
             # 生成的 STL 文件 URL
-            stl_file_url = f"http://127.0.0.1:8000/download/{os.path.basename(stl_file_path)}"
+            stl_file_url = f"{fetchIP}/download/{os.path.basename(stl_file_path)}"
             return ResponseMessage(
                 message=f"STL file successfully saved as: {stl_file_path}",
                 stl_file_url=stl_file_url
@@ -158,7 +159,7 @@ async def h5_to_vis(
         stl_file_path = process_h5_file(src, deflection)
         if stl_file_path:
             # 生成的 STL 文件 URL
-            stl_file_url = f"http://127.0.0.1:8000/download/{os.path.basename(stl_file_path)}"
+            stl_file_url = f"{fetchIP}/download/{os.path.basename(stl_file_path)}"
             return ResponseMessage(
                 message=f"STL file successfully saved as: {stl_file_path}",
                 stl_file_url=stl_file_url
@@ -200,7 +201,7 @@ async def encode_h5(
             shutil.move(output_path, final_output_path)
 
             # 返回生成的 zs.h5 文件的 URL
-            zs_file_url = f"http://127.0.0.1:8000/download/{os.path.basename(final_output_path)}"
+            zs_file_url = f"{fetchIP}/download/{os.path.basename(final_output_path)}"
             return ResponseMessage(
                 message=f"Encoded zs.h5 file saved as: {final_output_path}",
                 stl_file_url=zs_file_url
@@ -244,7 +245,7 @@ async def decode_h5(
             shutil.move(output_path, final_output_path)
 
             # 返回生成的 out.h5 文件的 URL
-            out_file_url = f"http://127.0.0.1:8000/download/{os.path.basename(final_output_path)}"
+            out_file_url = f"{fetchIP}/download/{os.path.basename(final_output_path)}"
             return ResponseMessage(
                 message=f"Decoded out.h5 file saved as: {final_output_path}",
                 stl_file_url=out_file_url
@@ -294,7 +295,7 @@ async def encode_decode_h5(
             shutil.move(out_output_path, out_final_path)
 
             # 返回生成的 out.h5 文件的 URL
-            out_file_url = f"http://127.0.0.1:8000/download/{os.path.basename(out_final_path)}"
+            out_file_url = f"{fetchIP}/download/{os.path.basename(out_final_path)}"
             return ResponseMessage(
                 message=f"Encoded and decoded out.h5 file saved as: {out_final_path}",
                 stl_file_url=out_file_url
@@ -306,4 +307,4 @@ async def encode_decode_h5(
 
 
 if __name__ == '__main__':
-    uvicorn.run(app, host="127.0.0.1", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8000)
