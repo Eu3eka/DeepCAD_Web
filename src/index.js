@@ -5,8 +5,9 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 let scene, camera, renderer, controls;
 let mesh;
 let edges;
+let fetchIP = "http://116.172.93.35:8000"
 
-// 场景
+
 function init() {
     scene = new THREE.Scene();
     camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -77,7 +78,7 @@ async function h5ToVis (event){
 
     try {
         // 向后端发送请求上传文件
-        const response = await fetch("http://127.0.0.1:8000/h5_to_vis/", {
+        const response = await fetch(fetchIP+"/h5_to_vis/", {
             method: 'POST',
             body: formData
         });
@@ -136,7 +137,7 @@ async function h5ToStl(event) {
         console.log(`${key}: ${value}`);
     }
 
-    return fetch('http://127.0.0.1:8000/export_stl/', {
+    return fetch(fetchIP+'export_stl/', {
         method: 'POST',
         body: formData
     })
