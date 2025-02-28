@@ -17,6 +17,7 @@ from starlette.responses import FileResponse
 # # 为引入cadlib模块需添加索引路径。添加路径后，引入不需要写路径的根名。例如cad/cadlib/curves，只需要import cadlib.curves
 deepcad_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../cad'))
 sys.path.append(deepcad_path)
+print(sys.path)
 
 from cadlib.visualize import vec2CADsolid
 from cadlib.extrude import CADSequence
