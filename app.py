@@ -30,8 +30,8 @@ fetchIP = "http://116.172.93.35:8000"
 
 # 配置 CORS
 origins = [
-    "http://localhost/",
-    "http://127.0.0.1/",
+    "http://localhost",
+    "http://127.0.0.1",
     fetchIP,
     "http://127.0.0.1:8000"
     "http://127.0.0.1:1234"
