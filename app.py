@@ -1,3 +1,4 @@
+import sys
 import os
 import shutil
 import h5py
@@ -6,21 +7,22 @@ import uvicorn
 from fastapi import FastAPI, UploadFile, File, HTTPException, Form
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-import sys
-import os
-# 为引入cadlib模块需添加索引路径
-from starlette.responses import FileResponse
-
-deepcad_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../cad'))
-sys.path.append(deepcad_path)
-
-from cadlib.visualize import vec2CADsolid
-from cadlib.extrude import CADSequence
 from OCC.Core.BRepCheck import BRepCheck_Analyzer
 from OCC.Core.StlAPI import StlAPI_Writer
 from OCC.Core.BRepMesh import BRepMesh_IncrementalMesh
 from OCC.Core.gp import gp_Vec, gp_Trsf
 from OCC.Core.TopLoc import TopLoc_Location
+from starlette.responses import FileResponse
+
+# # 为引入cadlib模块需添加索引路径。添加路径后，引入不需要写路径的根名。例如cad/cadlib/curves，只需要import cadlib.curves
+deepcad_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../cad'))
+sys.path.append(deepcad_path)
+
+from cadlib.visualize import vec2CADsolid
+from cadlib.extrude import CADSequence
+from single_encode_decode import *
+from config.ConfigAE import *
+from trainer.trainerAE import *
 
 app = FastAPI()
 
@@ -91,7 +93,7 @@ def process_h5_file(src, deflection):
         return None
 
 
-# 导出接口
+# 导出stl接口
 @app.post("/export_stl/", response_model=ResponseMessage)
 async def export_stl(
     src: UploadFile = File(...),
@@ -134,6 +136,7 @@ async def download_stl(stl_filename: str):
         raise HTTPException(status_code=404, detail="STL file not found.")
 
 
+# 整合功能，提供outh5来转化为stl文件，可视化是前端功能
 @app.post("/h5_to_vis/", response_model=ResponseMessage)
 async def h5_to_vis(
     src: UploadFile = File(...),
@@ -161,6 +164,142 @@ async def h5_to_vis(
             )
         else:
             raise HTTPException(status_code=500, detail="Failed to process H5 file.")
+    else:
+        raise HTTPException(status_code=400, detail="Unsupported file format or file type.")
+
+# 编码
+@app.post("/encode_h5/", response_model=ResponseMessage)
+async def encode_h5(
+    src: UploadFile = File(...),
+    file_format: str = Form(...)
+):
+    """
+    接收原始 h5 文件进行编码，输出 zs.h5 文件
+    """
+    # 保存上传的原始 H5 文件
+    upload_dir = "uploaded_files"
+    if not os.path.exists(upload_dir):
+        os.makedirs(upload_dir)
+    src_path = os.path.join(upload_dir, src.filename)
+
+    with open(src_path, "wb") as f:
+        shutil.copyfileobj(src.file, f)
+
+    # 检查文件格式
+    if file_format == "h5" and src.filename.endswith(".h5"):
+        try:
+            output_path = process_single_file(src_path, 'encode')
+            # 保存编码后的 zs.h5 文件到 zs_h5_files 文件夹
+            zs_output_dir = "zs_h5_files"
+            if not os.path.exists(zs_output_dir):
+                os.makedirs(zs_output_dir)
+            final_output_path = os.path.join(zs_output_dir, os.path.basename(output_path))
+
+            # 移动文件到 zs_h5_files 文件夹
+            shutil.move(output_path, final_output_path)
+
+            # 返回生成的 zs.h5 文件的 URL
+            zs_file_url = f"http://127.0.0.1:8000/download/{os.path.basename(final_output_path)}"
+            return ResponseMessage(
+                message=f"Encoded zs.h5 file saved as: {final_output_path}",
+                stl_file_url=zs_file_url
+            )
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Error during encoding: {str(e)}")
+    else:
+        raise HTTPException(status_code=400, detail="Unsupported file format or file type.")
+
+
+# 解码
+@app.post("/decode_h5/", response_model=ResponseMessage)
+async def decode_h5(
+    src: UploadFile = File(...),
+    file_format: str = Form(...)
+):
+    """
+    接收编码后的 zs.h5 文件进行解码，输出 out.h5 文件
+    """
+    # 保存上传的 zs.h5 文件
+    upload_dir = "uploaded_files"
+    if not os.path.exists(upload_dir):
+        os.makedirs(upload_dir)
+    src_path = os.path.join(upload_dir, src.filename)
+
+    with open(src_path, "wb") as f:
+        shutil.copyfileobj(src.file, f)
+
+    # 检查文件格式
+    if file_format == "h5" and src.filename.endswith("_zs.h5"):
+        try:
+            # 执行解码操作
+            output_path = process_single_file(src_path, 'decode')
+            # 保存解码后的 out.h5 文件到 out_h5_files 文件夹
+            out_output_dir = "out_h5_files"
+            if not os.path.exists(out_output_dir):
+                os.makedirs(out_output_dir)
+            final_output_path = os.path.join(out_output_dir, os.path.basename(output_path))
+
+            # 移动文件到 out_h5_files 文件夹
+            shutil.move(output_path, final_output_path)
+
+            # 返回生成的 out.h5 文件的 URL
+            out_file_url = f"http://127.0.0.1:8000/download/{os.path.basename(final_output_path)}"
+            return ResponseMessage(
+                message=f"Decoded out.h5 file saved as: {final_output_path}",
+                stl_file_url=out_file_url
+            )
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Error during decoding: {str(e)}")
+    else:
+        raise HTTPException(status_code=400, detail="Unsupported file format or file type.")
+
+# 综合编解码
+@app.post("/encode_decode_h5/", response_model=ResponseMessage)
+async def encode_decode_h5(
+    src: UploadFile = File(...),
+    file_format: str = Form(...),
+    deflection: float = Form(...)
+):
+    """
+    结合完整过程，接收原始 h5 文件，完成编码解码的过程，输出 out.h5 文件
+    """
+    # 保存上传的原始 H5 文件
+    upload_dir = "uploaded_files"
+    if not os.path.exists(upload_dir):
+        os.makedirs(upload_dir)
+    src_path = os.path.join(upload_dir, src.filename)
+
+    with open(src_path, "wb") as f:
+        shutil.copyfileobj(src.file, f)
+
+    # 检查文件格式
+    if file_format == "h5" and src.filename.endswith(".h5"):
+        try:
+            # 执行编码
+            zs_output_path = process_single_file(src_path, 'encode')
+            zs_output_dir = "zs_h5_files"
+            if not os.path.exists(zs_output_dir):
+                os.makedirs(zs_output_dir)
+            zs_final_path = os.path.join(zs_output_dir, os.path.basename(zs_output_path))
+
+            # 执行解码
+            out_output_path = process_single_file(src_path, 'decode')
+            out_output_dir = "out_h5_files"
+            if not os.path.exists(out_output_dir):
+                os.makedirs(out_output_dir)
+            out_final_path = os.path.join(out_output_dir, os.path.basename(out_output_path))
+
+            # 移动解码后的文件到 out_h5_files 文件夹
+            shutil.move(out_output_path, out_final_path)
+
+            # 返回生成的 out.h5 文件的 URL
+            out_file_url = f"http://127.0.0.1:8000/download/{os.path.basename(out_final_path)}"
+            return ResponseMessage(
+                message=f"Encoded and decoded out.h5 file saved as: {out_final_path}",
+                stl_file_url=out_file_url
+            )
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Error during encoding/decoding: {str(e)}")
     else:
         raise HTTPException(status_code=400, detail="Unsupported file format or file type.")
 
