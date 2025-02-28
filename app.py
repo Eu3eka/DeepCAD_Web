@@ -32,11 +32,16 @@ fetchIP = "http://116.172.93.35:8000"
 origins = [
     "http://localhost/",
     "http://127.0.0.1/",
+    fetchIP,
+    "http://127.0.0.1:8000"
+    "http://127.0.0.1:1234"
+    "http://0.0.0.0:1234"
+    "http://0.0.0.0:8000"
 ]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # 允许哪些来源的请求
+    allow_origins=origins,  # 允许哪些来源的请求
     allow_credentials=True,
     allow_methods=["*"],  # 允许所有 HTTP 方法
     allow_headers=["*"],  # 允许所有请求头
