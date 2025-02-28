@@ -27,11 +27,16 @@ from trainer.trainerAE import *
 
 app = FastAPI()
 fetchIP = "http://116.172.93.35:8000"
+localIP = "http://103.172.183.54"
+localIPPort = "http://103.172.183.54:1234"
+
 
 # 配置 CORS
 origins = [
     "http://localhost",
     "http://127.0.0.1",
+    localIP,
+    localIPPort,
     fetchIP,
     "http://127.0.0.1:8000"
     "http://127.0.0.1:1234"
