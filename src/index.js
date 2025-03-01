@@ -5,7 +5,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 let scene, camera, renderer, controls;
 let mesh;
 let edges;
-let fetchIP = "http://127.0.0.1:8000"//"http://116.172.93.35:8000"
+let fetchIP = /*"http://127.0.0.1:8000"*/"http://116.172.93.35:8000"
 
 
 function init() {
