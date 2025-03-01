@@ -48,7 +48,7 @@ origins = [
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # 允许哪些来源的请求
-    allow_credentials=False,
+    allow_credentials=True,
     allow_methods=["*"],  # 允许所有 HTTP 方法
     allow_headers=["*"],  # 允许所有请求头
 )
