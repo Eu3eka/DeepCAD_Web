@@ -5,7 +5,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 let scene, camera, renderer, controls;
 let mesh;
 let edges;
-let fetchIP = "http://116.172.93.35:8000"
+let fetchIP = "http://127.0.0.1:8000"//"http://116.172.93.35:8000"
 
 
 function init() {
@@ -77,12 +77,12 @@ async function h5ToVis (event){
     formData.append("deflection", 0.1);
 
     try {
-        // 向后端发送请求上传文件
-        const response = await fetch(fetchIP+"/h5_to_vis/", {
+        // const res = await fetch(fetchIP);
+        const response = await fetch(fetchIP + "/h5_to_vis/", {
             method: 'POST',
             body: formData
         });
-
+        console.log(fetchIP)
         const data = await response.json();
         if (response.ok && data.stl_file_url) {
             const stlFileUrl = data.stl_file_url;
@@ -137,7 +137,7 @@ async function h5ToStl(event) {
         console.log(`${key}: ${value}`);
     }
 
-    return fetch(fetchIP+'export_stl/', {
+    return fetch(fetchIP+'/export_stl/', {
         method: 'POST',
         body: formData
     })
